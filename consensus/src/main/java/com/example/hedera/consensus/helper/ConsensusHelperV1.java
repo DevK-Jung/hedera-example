@@ -2,8 +2,9 @@ package com.example.hedera.consensus.helper;
 
 import com.example.hedera.common.core.AbstractHederaHelper;
 import com.example.hedera.common.vo.HederaTransactionResponseVo;
-import com.example.hedera.consensus.vo.TopicCreateResponseVo;
+import com.example.hedera.consensus.vo.TopicResponseVo;
 import com.hedera.hashgraph.sdk.*;
+import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,7 +42,7 @@ public class ConsensusHelperV1 extends AbstractHederaHelper implements Consensus
      * @throws ReceiptStatusException  트랜잭션 영수증 상태가 실패로 반환될 경우 발생합니다.
      */
     @Override
-    public HederaTransactionResponseVo<TopicCreateResponseVo> createTopic() throws PrecheckStatusException, TimeoutException, ReceiptStatusException {
+    public HederaTransactionResponseVo<TopicResponseVo> createTopic() throws PrecheckStatusException, TimeoutException, ReceiptStatusException {
 
         return createTopic(privateKey, privateKey, null, accountId, Duration.ofDays(92));
     }
@@ -60,11 +61,11 @@ public class ConsensusHelperV1 extends AbstractHederaHelper implements Consensus
      * @throws ReceiptStatusException  트랜잭션 영수증 상태가 실패로 반환될 경우 발생합니다.
      */
     @Override
-    public HederaTransactionResponseVo<TopicCreateResponseVo> createTopic(Key adminKey,
-                                                                          Key submitKey,
-                                                                          String topicMemo,
-                                                                          AccountId autoRenewAccountId,
-                                                                          Duration autoRenewPeriod)
+    public HederaTransactionResponseVo<TopicResponseVo> createTopic(Key adminKey,
+                                                                    Key submitKey,
+                                                                    String topicMemo,
+                                                                    AccountId autoRenewAccountId,
+                                                                    Duration autoRenewPeriod)
             throws PrecheckStatusException, TimeoutException, ReceiptStatusException {
 
         TopicCreateTransaction transaction = getTopicCreateTransaction(adminKey, submitKey, topicMemo, autoRenewAccountId, autoRenewPeriod);
@@ -86,7 +87,81 @@ public class ConsensusHelperV1 extends AbstractHederaHelper implements Consensus
         if (newTopicId == null)
             throw new IllegalStateException("Topic ID cannot be null");
 
-        return makeTransactinoResponse(receipt, new TopicCreateResponseVo(newTopicId.toString()));
+        return makeTransactinoResponse(receipt, new TopicResponseVo(newTopicId.toString()));
+    }
+
+    public HederaTransactionResponseVo<TopicResponseVo> updateTopic(@NonNull String topicId,
+                                                                    String submitKey,
+                                                                    String adminKey)
+            throws ReceiptStatusException, PrecheckStatusException, TimeoutException {
+        //Create a transaction to add a submit key
+        TopicUpdateTransaction transaction = new TopicUpdateTransaction()
+                .setTopicId(TopicId.fromString(topicId))
+                .setSubmitKey(PrivateKey.fromString(submitKey));
+
+        //Sign the transaction with the admin key to authorize the update
+        TopicUpdateTransaction signTx = transaction
+                .freezeWith(client)
+                .sign(PrivateKey.fromString(adminKey));
+
+        //Sign the transaction with the client operator, submit to a Hedera network, get the transaction ID
+        TransactionResponse txResponse = signTx.execute(client);
+
+        //Request the receipt of the transaction
+        TransactionReceipt receipt = txResponse.getReceipt(client);
+
+        //Get the transaction consensus status
+        Status transactionStatus = receipt.status;
+
+        log.debug("The transaction consensus status is " + transactionStatus);
+
+        if (!Status.SUCCESS.equals(receipt.status))
+            throw new RuntimeException("Failed update Topic");
+
+        return makeTransactinoResponse(receipt, new TopicResponseVo(topicId));
+    }
+
+    /**
+     * delete Topic
+     * <p>토픽 삭제, 삭제 후 메시지 수신 불가하며 submitMessage 호출 실패, 토픽이 삭제된 후에도 미러 노드를 통해 이전 메시지 엑세스는 가능</p>
+     * <ul>
+     *      <li>토픽 생성 시 adminKey가 설정된 경우 토픽을 성공적으로 삭제하려면 adminKey에 서명해야 합니다.</li>
+     *      <li>토픽 생성 시 adminKey가 설정되지 않은 경우 토픽을 삭제할 수 없으며 UNAUTHHORIZED 오류가 발생합니다.</li>
+     * </ul>
+     *
+     * @param topicId  topicId
+     * @param adminKey 토픽 생성 시 설정한 adminKey
+     * @return
+     * @throws ReceiptStatusException
+     * @throws PrecheckStatusException
+     * @throws TimeoutException
+     */
+    @Override
+    public HederaTransactionResponseVo<TopicResponseVo> deleteTopic(@NonNull String topicId,
+                                                                    @NonNull String adminKey)
+            throws ReceiptStatusException, PrecheckStatusException, TimeoutException {
+        //Create the transaction
+        TopicDeleteTransaction transaction = new TopicDeleteTransaction()
+                .setTopicId(TopicId.fromString(topicId));
+
+        //Sign the transaction with the admin key, sign with the client operator and submit the transaction to a Hedera network, get the transaction ID
+        TransactionResponse txResponse = transaction
+                .freezeWith(client)
+                .sign(PrivateKey.fromString(adminKey))
+                .execute(client);
+
+        //Request the receipt of the transaction
+        TransactionReceipt receipt = txResponse.getReceipt(client);
+
+        //Get the transaction consensus status
+        Status transactionStatus = receipt.status;
+
+        log.debug("The transaction consensus status is " + transactionStatus);
+
+        if (!Status.SUCCESS.equals(receipt.status))
+            throw new RuntimeException("Failed delete Topic");
+
+        return makeTransactinoResponse(receipt, new TopicResponseVo(topicId));
     }
 
     /**

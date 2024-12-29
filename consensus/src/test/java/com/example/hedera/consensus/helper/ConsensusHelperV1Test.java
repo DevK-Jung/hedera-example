@@ -1,7 +1,7 @@
 package com.example.hedera.consensus.helper;
 
 import com.example.hedera.common.vo.HederaTransactionResponseVo;
-import com.example.hedera.consensus.vo.TopicCreateResponseVo;
+import com.example.hedera.consensus.vo.TopicResponseVo;
 import com.hedera.hashgraph.sdk.PrecheckStatusException;
 import com.hedera.hashgraph.sdk.ReceiptStatusException;
 import com.hedera.hashgraph.sdk.Status;
@@ -22,7 +22,7 @@ class ConsensusHelperV1Test {
 
     @Test
     void createTopic() throws ReceiptStatusException, PrecheckStatusException, TimeoutException {
-        HederaTransactionResponseVo<TopicCreateResponseVo> result = consensusHelper.createTopic();
+        HederaTransactionResponseVo<TopicResponseVo> result = consensusHelper.createTopic();
 
         System.out.println("result.getResult().topicId() = " + result.getResult().topicId());
 
@@ -37,5 +37,15 @@ class ConsensusHelperV1Test {
         TopicInfo topicInfo = consensusHelper.getTopicInfo(topicId);
 
         Assertions.assertThat(topicInfo.topicId.toString()).isEqualTo(topicId);
+    }
+
+    @Test
+    void deleteTopic() throws PrecheckStatusException, TimeoutException, ReceiptStatusException {
+        String topicId = "0.0.5327337";
+        String adminKey = ""; // adminKey
+
+        HederaTransactionResponseVo<TopicResponseVo> result = consensusHelper.deleteTopic(topicId, adminKey);
+
+        Assertions.assertThat(result.getStatus()).isEqualTo(Status.SUCCESS);
     }
 }
