@@ -23,7 +23,9 @@ class ConsensusHelperV1Test {
 
     @Test
     void createTopic() throws ReceiptStatusException, PrecheckStatusException, TimeoutException {
-        HederaTransactionResponseVo<TopicResponseVo> result = consensusHelper.createTopic();
+        String topicMemo = "My First Topic";
+
+        HederaTransactionResponseVo<TopicResponseVo> result = consensusHelper.createTopic(topicMemo);
 
         System.out.println("result.getResult().topicId() = " + result.getResult().topicId());
 

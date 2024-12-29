@@ -10,7 +10,7 @@ import java.time.Duration;
 import java.util.concurrent.TimeoutException;
 
 public interface ConsensusHelper {
-    HederaTransactionResponseVo<TopicResponseVo> createTopic() throws PrecheckStatusException, TimeoutException, ReceiptStatusException;
+    HederaTransactionResponseVo<TopicResponseVo> createTopic(String topicMemo) throws PrecheckStatusException, TimeoutException, ReceiptStatusException;
 
     HederaTransactionResponseVo<TopicResponseVo> createTopic(Key adminKey,
                                                              Key submitKey,

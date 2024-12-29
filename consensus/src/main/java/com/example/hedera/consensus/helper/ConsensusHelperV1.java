@@ -38,15 +38,16 @@ public class ConsensusHelperV1 extends AbstractHederaHelper implements Consensus
      * - AdminKey와 SubmitKey는 운영자의 개인 키를 사용합니다.
      * - 자동 갱신 기간(Auto-renew period)은 92일로 설정됩니다.
      *
+     * @param topicMemo 메모
      * @return 생성된 토픽의 ID를 문자열로 반환합니다.
      * @throws PrecheckStatusException 요청이 Hedera 네트워크의 사전 검사 단계에서 실패할 경우 발생합니다.
      * @throws TimeoutException        요청 시간이 초과될 경우 발생합니다.
      * @throws ReceiptStatusException  트랜잭션 영수증 상태가 실패로 반환될 경우 발생합니다.
      */
     @Override
-    public HederaTransactionResponseVo<TopicResponseVo> createTopic() throws PrecheckStatusException, TimeoutException, ReceiptStatusException {
+    public HederaTransactionResponseVo<TopicResponseVo> createTopic(String topicMemo) throws PrecheckStatusException, TimeoutException, ReceiptStatusException {
 
-        return createTopic(privateKey, privateKey, null, accountId, Duration.ofDays(92));
+        return createTopic(privateKey, privateKey, topicMemo, accountId, Duration.ofDays(92));
     }
 
     /**
