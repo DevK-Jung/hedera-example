@@ -1,0 +1,7 @@
+spring:
+  application:
+    name: consensus
+
+hedera:
+  account-id: ${accountId}
+  private-key: ${privateKey}

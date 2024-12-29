@@ -4,7 +4,11 @@ version = '0.0.1-SNAPSHOT'
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0' // 최신 버전
-	implementation 'org.springframework.boot:spring-boot-starter-jdbc'
+
+	// hedera(https://github.com/hashgraph/hedera-sdk-java/blob/main/docs/java-app/java-app-quickstart.md 참고)
+	implementation 'com.hedera.hashgraph:sdk:2.46.0'
+	implementation 'io.grpc:grpc-netty-shaded:1.64.0'
+
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
