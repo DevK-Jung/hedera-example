@@ -1,3 +1,4 @@
 rootProject.name = 'hedera-example'
 
+include 'common'
 include 'consensus'

@@ -26,6 +26,11 @@ subprojects { // 서브 프로젝트 설정
 
     dependencies {
         implementation 'org.springframework.boot:spring-boot-starter'
+
+        // hedera(https://github.com/hashgraph/hedera-sdk-java/blob/main/docs/java-app/java-app-quickstart.md 참고)
+        implementation 'com.hedera.hashgraph:sdk:2.46.0'
+        implementation 'io.grpc:grpc-netty-shaded:1.64.0'
+
         compileOnly 'org.projectlombok:lombok'
         annotationProcessor 'org.projectlombok:lombok'
         testImplementation 'org.springframework.boot:spring-boot-starter-test'

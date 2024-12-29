@@ -1,4 +1,4 @@
-package com.example.hedera.consensus.config;
+package com.example.hedera.common.config;
 
 import com.hedera.hashgraph.sdk.AccountId;
 import com.hedera.hashgraph.sdk.Client;
@@ -15,14 +15,14 @@ public class ClientConfig {
                          @Value("${hedera.private-key}") String privateKey) {
 
         // Operator account ID and private key from string value
-        AccountId MY_ACCOUNT_ID = AccountId.fromString(accountId);
-        PrivateKey MY_PRIVATE_KEY = PrivateKey.fromString(privateKey);
+        AccountId myAccountId = AccountId.fromString(accountId);
+        PrivateKey myPrivateKey = PrivateKey.fromString(privateKey);
 
         // Pre-configured client for test network (testnet)
         Client client = Client.forTestnet();
 
         //Set the operator with the account ID and private key
-        client.setOperator(MY_ACCOUNT_ID, MY_PRIVATE_KEY);
+        client.setOperator(myAccountId, myPrivateKey);
 
         return client;
     }
