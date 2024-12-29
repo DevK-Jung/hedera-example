@@ -1,7 +1,7 @@
 package com.example.hedera.consensus.helper;
 
 import com.example.hedera.common.core.AbstractHederaHelper;
-import com.example.hedera.common.vo.HederaResponseVo;
+import com.example.hedera.common.vo.HederaTransactionResponseVo;
 import com.example.hedera.consensus.vo.TopicCreateResponseVo;
 import com.hedera.hashgraph.sdk.*;
 import lombok.extern.slf4j.Slf4j;
@@ -41,7 +41,7 @@ public class ConsensusHelperV1 extends AbstractHederaHelper implements Consensus
      * @throws ReceiptStatusException  트랜잭션 영수증 상태가 실패로 반환될 경우 발생합니다.
      */
     @Override
-    public HederaResponseVo<TopicCreateResponseVo> createTopic() throws PrecheckStatusException, TimeoutException, ReceiptStatusException {
+    public HederaTransactionResponseVo<TopicCreateResponseVo> createTopic() throws PrecheckStatusException, TimeoutException, ReceiptStatusException {
 
         return createTopic(privateKey, privateKey, null, accountId, Duration.ofDays(92));
     }
@@ -60,11 +60,11 @@ public class ConsensusHelperV1 extends AbstractHederaHelper implements Consensus
      * @throws ReceiptStatusException  트랜잭션 영수증 상태가 실패로 반환될 경우 발생합니다.
      */
     @Override
-    public HederaResponseVo<TopicCreateResponseVo> createTopic(Key adminKey,
-                                                               Key submitKey,
-                                                               String topicMemo,
-                                                               AccountId autoRenewAccountId,
-                                                               Duration autoRenewPeriod)
+    public HederaTransactionResponseVo<TopicCreateResponseVo> createTopic(Key adminKey,
+                                                                          Key submitKey,
+                                                                          String topicMemo,
+                                                                          AccountId autoRenewAccountId,
+                                                                          Duration autoRenewPeriod)
             throws PrecheckStatusException, TimeoutException, ReceiptStatusException {
 
         TopicCreateTransaction transaction = getTopicCreateTransaction(adminKey, submitKey, topicMemo, autoRenewAccountId, autoRenewPeriod);
@@ -86,7 +86,31 @@ public class ConsensusHelperV1 extends AbstractHederaHelper implements Consensus
         if (newTopicId == null)
             throw new IllegalStateException("Topic ID cannot be null");
 
-        return makeResponse(receipt, new TopicCreateResponseVo(newTopicId.toString()));
+        return makeTransactinoResponse(receipt, new TopicCreateResponseVo(newTopicId.toString()));
+    }
+
+    /**
+     * topic 정보 조회
+     *
+     * @param topicId 토픽 아이디
+     * @return TopicInfo
+     * @throws PrecheckStatusException PrecheckStatusException
+     * @throws TimeoutException        TimeoutException
+     */
+    @Override
+    public TopicInfo getTopicInfo(String topicId) throws PrecheckStatusException, TimeoutException {
+        //Create the account info query
+        TopicInfoQuery query = new TopicInfoQuery()
+                .setTopicId(TopicId.fromString(topicId));
+
+        //Submit the query to a Hedera network
+        TopicInfo info = query.execute(client);
+
+        //Print the account key to the console
+        log.debug("topicInfo: {}", info);
+
+        //v2.0.0
+        return info;
     }
 
     private TopicCreateTransaction getTopicCreateTransaction(Key adminKey,
