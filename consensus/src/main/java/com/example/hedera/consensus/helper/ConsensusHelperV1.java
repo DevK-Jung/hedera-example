@@ -40,6 +40,7 @@ public class ConsensusHelperV1 extends AbstractHederaHelper implements Consensus
      * @throws TimeoutException        요청 시간이 초과될 경우 발생합니다.
      * @throws ReceiptStatusException  트랜잭션 영수증 상태가 실패로 반환될 경우 발생합니다.
      */
+    @Override
     public HederaResponseVo<TopicCreateResponseVo> createTopic() throws PrecheckStatusException, TimeoutException, ReceiptStatusException {
 
         return createTopic(privateKey, privateKey, null, accountId, Duration.ofDays(92));
@@ -58,6 +59,7 @@ public class ConsensusHelperV1 extends AbstractHederaHelper implements Consensus
      * @throws TimeoutException        요청 시간이 초과될 경우 발생합니다.
      * @throws ReceiptStatusException  트랜잭션 영수증 상태가 실패로 반환될 경우 발생합니다.
      */
+    @Override
     public HederaResponseVo<TopicCreateResponseVo> createTopic(Key adminKey,
                                                                Key submitKey,
                                                                String topicMemo,
