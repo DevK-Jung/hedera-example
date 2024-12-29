@@ -2,6 +2,7 @@ package com.example.hedera.consensus.helper;
 
 import com.example.hedera.common.core.AbstractHederaHelper;
 import com.example.hedera.common.vo.HederaTransactionResponseVo;
+import com.example.hedera.consensus.vo.MessageResponseVo;
 import com.example.hedera.consensus.vo.TopicResponseVo;
 import com.hedera.hashgraph.sdk.*;
 import lombok.NonNull;
@@ -10,6 +11,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.concurrent.TimeoutException;
 
@@ -68,7 +70,8 @@ public class ConsensusHelperV1 extends AbstractHederaHelper implements Consensus
                                                                     Duration autoRenewPeriod)
             throws PrecheckStatusException, TimeoutException, ReceiptStatusException {
 
-        TopicCreateTransaction transaction = getTopicCreateTransaction(adminKey, submitKey, topicMemo, autoRenewAccountId, autoRenewPeriod);
+        TopicCreateTransaction transaction =
+                getTopicCreateTransaction(adminKey, submitKey, topicMemo, autoRenewAccountId, autoRenewPeriod);
 
         //Sign with the client operator private key and submit the transaction to a Hedera network
         TransactionResponse txResponse = transaction.execute(client);
@@ -96,13 +99,13 @@ public class ConsensusHelperV1 extends AbstractHederaHelper implements Consensus
             throws ReceiptStatusException, PrecheckStatusException, TimeoutException {
         //Create a transaction to add a submit key
         TopicUpdateTransaction transaction = new TopicUpdateTransaction()
-                .setTopicId(TopicId.fromString(topicId))
-                .setSubmitKey(PrivateKey.fromString(submitKey));
+                .setTopicId(getTopicId(topicId))
+                .setSubmitKey(getPrivateKey(submitKey));
 
         //Sign the transaction with the admin key to authorize the update
         TopicUpdateTransaction signTx = transaction
                 .freezeWith(client)
-                .sign(PrivateKey.fromString(adminKey));
+                .sign(getPrivateKey(adminKey));
 
         //Sign the transaction with the client operator, submit to a Hedera network, get the transaction ID
         TransactionResponse txResponse = signTx.execute(client);
@@ -142,7 +145,7 @@ public class ConsensusHelperV1 extends AbstractHederaHelper implements Consensus
             throws ReceiptStatusException, PrecheckStatusException, TimeoutException {
         //Create the transaction
         TopicDeleteTransaction transaction = new TopicDeleteTransaction()
-                .setTopicId(TopicId.fromString(topicId));
+                .setTopicId(getTopicId(topicId));
 
         //Sign the transaction with the admin key, sign with the client operator and submit the transaction to a Hedera network, get the transaction ID
         TransactionResponse txResponse = transaction
@@ -162,6 +165,55 @@ public class ConsensusHelperV1 extends AbstractHederaHelper implements Consensus
             throw new RuntimeException("Failed delete Topic");
 
         return makeTransactinoResponse(receipt, new TopicResponseVo(topicId));
+    }
+
+    /**
+     * submit Message
+     * <p>
+     *
+     * @param topicId    topicId
+     * @param message    message - 최대 크기 1024byte(1kb)
+     * @param chunkSize  메시지에 대한 개별 청크의 최대 크기 - default 1024
+     * @param maxChuncks 메시지 분할 할 수 있는 최대 청크 수 - 기본 값 20
+     * @return HederaTransactionResponseVo<MessageResponseVo>
+     * @throws PrecheckStatusException PrecheckStatusException
+     * @throws TimeoutException        TimeoutException
+     * @throws ReceiptStatusException  ReceiptStatusException
+     */
+    @Override
+    public HederaTransactionResponseVo<MessageResponseVo> submitMessage(@NonNull String topicId,
+                                                                        @NonNull String message,
+                                                                        Integer chunkSize,
+                                                                        Integer maxChuncks)
+            throws PrecheckStatusException, TimeoutException, ReceiptStatusException {
+
+        // Check if the message exceeds 1KB
+        if (message.getBytes(StandardCharsets.UTF_8).length > 1024)
+            throw new IllegalArgumentException("Message size exceeds 1KB limit");
+
+        //Create the transaction
+        TopicMessageSubmitTransaction transaction = new TopicMessageSubmitTransaction()
+                .setTopicId(getTopicId(topicId))
+                .setMessage(message);
+
+        if (chunkSize != null) transaction.setChunkSize(chunkSize);
+        if (maxChuncks != null) transaction.setMaxAttempts(maxChuncks);
+
+        // Sign with the client operator key and submit transaction to a Hedera network, get transaction ID
+        TransactionResponse txResponse = transaction.execute(client);
+
+        // Request the receipt of the transaction
+        TransactionReceipt receipt = txResponse.getReceipt(client);
+
+        // Get the transaction consensus status
+        Status transactionStatus = receipt.status;
+
+        log.info("The transaction consensus status is " + transactionStatus);
+
+        if (!Status.SUCCESS.equals(receipt.status))
+            throw new RuntimeException("Failed submit message");
+
+        return makeTransactinoResponse(receipt, new MessageResponseVo(topicId, message, receipt.topicSequenceNumber));
     }
 
     /**
@@ -203,6 +255,14 @@ public class ConsensusHelperV1 extends AbstractHederaHelper implements Consensus
         if (autoRenewPeriod != null) transaction.setAutoRenewPeriod(autoRenewPeriod);
 
         return transaction;
+    }
+
+    private TopicId getTopicId(@NonNull String topicId) {
+        return TopicId.fromString(topicId);
+    }
+
+    private PrivateKey getPrivateKey(@NonNull String privateKey) {
+        return PrivateKey.fromString(privateKey);
     }
 
 }

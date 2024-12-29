@@ -1,6 +1,7 @@
 package com.example.hedera.consensus.helper;
 
 import com.example.hedera.common.vo.HederaTransactionResponseVo;
+import com.example.hedera.consensus.vo.MessageResponseVo;
 import com.example.hedera.consensus.vo.TopicResponseVo;
 import com.hedera.hashgraph.sdk.*;
 import lombok.NonNull;
@@ -23,5 +24,11 @@ public interface ConsensusHelper {
             throws ReceiptStatusException, PrecheckStatusException, TimeoutException;
 
     TopicInfo getTopicInfo(String topicId) throws PrecheckStatusException, TimeoutException;
+
+    HederaTransactionResponseVo<MessageResponseVo> submitMessage(@NonNull String topicId,
+                                                                 @NonNull String message,
+                                                                 Integer chunkSize,
+                                                                 Integer maxChuncks)
+            throws PrecheckStatusException, TimeoutException, ReceiptStatusException;
 
 }

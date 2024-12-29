@@ -1,5 +1,6 @@
 package com.example.hedera.common.vo;
 
+import com.hedera.hashgraph.sdk.ExchangeRate;
 import com.hedera.hashgraph.sdk.Status;
 import com.hedera.hashgraph.sdk.TransactionReceipt;
 import lombok.AccessLevel;
@@ -13,6 +14,7 @@ import java.util.Objects;
 public final class HederaTransactionResponseVo<T> {
     private final Status status;
     private final String transactionId;
+    private final ExchangeRate exchangeRate;
     private final T result;
 
     public static <T> HederaTransactionResponseVo<T> of(TransactionReceipt receipt, T result) {
@@ -21,6 +23,7 @@ public final class HederaTransactionResponseVo<T> {
         return new HederaTransactionResponseVo<>(
                 Objects.requireNonNull(receipt.status, "Status cannot be null"),
                 receipt.transactionId != null ? receipt.transactionId.toString() : "UNKNOWN_TRANSACTION_ID",
+                receipt.exchangeRate,
                 result
         );
     }
