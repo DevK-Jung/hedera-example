@@ -72,6 +72,10 @@ public interface ConsensusHelper {
 
     TopicInfo getTopicInfo(String topicId) throws PrecheckStatusException, TimeoutException;
 
+    void getTopicMessages(String topicId,
+                          Instant subscribeStartTime,
+                          Instant subscribeEndTime);
+
     HederaTransactionResponseVo<MessageResponseVo> submitMessage(@NonNull String topicId,
                                                                  @NonNull String message,
                                                                  Integer chunkSize,

@@ -466,6 +466,22 @@ public class ConsensusHelperV1 extends AbstractHederaHelper implements Consensus
         return info;
     }
 
+    @Override
+    public void getTopicMessages(String topicId,
+                                 Instant subscribeStartTime,
+                                 Instant subscribeEndTime) {
+        //Create the query
+        TopicMessageQuery topicMessageQuery = new TopicMessageQuery()
+                .setTopicId(TopicId.fromString(topicId));
+
+        if (subscribeEndTime != null) topicMessageQuery.setStartTime(subscribeStartTime);
+        if (subscribeEndTime != null) topicMessageQuery.setEndTime(subscribeEndTime);
+
+        topicMessageQuery.subscribe(client, topicMessage -> {
+            System.out.println("at " + topicMessage.consensusTimestamp + " ( seq = " + topicMessage.sequenceNumber + " ) received topic message of " + topicMessage.contents.length + " bytes");
+        });
+    }
+
     private TopicCreateTransaction getTopicCreateTransaction(Key adminKey,
                                                              Key submitKey,
                                                              String topicMemo,

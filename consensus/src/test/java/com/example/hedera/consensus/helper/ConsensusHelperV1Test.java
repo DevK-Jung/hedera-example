@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ActiveProfiles;
 
+import java.time.Instant;
 import java.util.concurrent.TimeoutException;
 
 @SpringBootTest
@@ -113,5 +114,17 @@ class ConsensusHelperV1Test {
 
     @Test
     void clearAutoRenewAccountId() {
+    }
+
+    @Test
+    void getTopicMessages() throws ReceiptStatusException, PrecheckStatusException, TimeoutException, InterruptedException {
+        String topicId = "0.0.5328364";
+
+        Instant now = Instant.now(); // 현재 시점
+        Instant tenMinutesLater = now.plusSeconds(10 * 60); // 현재 시점부터 10분 후
+
+        consensusHelper.getTopicMessages(topicId, now, tenMinutesLater);
+
+        submitMessage(); // 로그 메시지 확인
     }
 }
