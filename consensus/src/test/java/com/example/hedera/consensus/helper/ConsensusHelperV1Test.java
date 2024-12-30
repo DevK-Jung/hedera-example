@@ -64,4 +64,54 @@ class ConsensusHelperV1Test {
         Assertions.assertThat(result.getStatus()).isEqualTo(Status.SUCCESS);
         Assertions.assertThat(result.getResult().message()).isEqualTo(message);
     }
+
+    @Test
+    void updateAdminKey() {
+
+    }
+
+    @Test
+    void updateSubmitKey() {
+    }
+
+    @Test
+    void updateExpirationTime() {
+    }
+
+    @Test
+    void updateTopicMemo() {
+    }
+
+    @Test
+    void updateAutoRenewAccount() {
+    }
+
+    @Test
+    void testUpdateAutoRenewAccount() {
+    }
+
+    @Test
+    void clearAdminKey() {
+    }
+
+    @Test
+    void clearSubmitKey() {
+    }
+
+    @Test
+    void clearTopicMemo() throws ReceiptStatusException, PrecheckStatusException, TimeoutException {
+        String topicId = "0.0.5328364";
+        String adminKey = "";
+        String newTopicMemo = "hello";
+
+        HederaTransactionResponseVo<TopicResponseVo> result = consensusHelper.updateTopicMemo(topicId, adminKey, newTopicMemo);
+        TopicInfo topicInfo = consensusHelper.getTopicInfo(topicId);
+
+        Assertions.assertThat(result.getStatus()).isEqualTo(Status.SUCCESS);
+        Assertions.assertThat(topicInfo.topicMemo).isEqualTo(newTopicMemo);
+    }
+
+    @Test
+    void clearAutoRenewAccountId() {
+    }
 }

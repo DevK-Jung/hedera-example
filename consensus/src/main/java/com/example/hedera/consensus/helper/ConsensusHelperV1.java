@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
+import java.time.Instant;
 import java.util.concurrent.TimeoutException;
 
 @Slf4j
@@ -91,17 +92,241 @@ public class ConsensusHelperV1 extends AbstractHederaHelper implements Consensus
         if (newTopicId == null)
             throw new IllegalStateException("Topic ID cannot be null");
 
-        return makeTransactinoResponse(receipt, new TopicResponseVo(newTopicId.toString()));
+        return makeTransactionResponse(receipt, new TopicResponseVo(newTopicId.toString()));
     }
 
-    public HederaTransactionResponseVo<TopicResponseVo> updateTopic(@NonNull String topicId,
-                                                                    String submitKey,
-                                                                    String adminKey)
+    /**
+     * update adminKey
+     * 토픽 업데이트 및 토픽 삭제 거래를 승인하는 새로운 관리자 키를 설정합니다.
+     *
+     * @param topicId     topicId
+     * @param adminKey    거래 서명할 adminKey
+     * @param newAdminKey 수정할 adminKey
+     * @return HederaTransactionResponseVo<TopicResponseVo>
+     * @throws ReceiptStatusException  ReceiptStatusException
+     * @throws PrecheckStatusException PrecheckStatusException
+     * @throws TimeoutException        TimeoutException
+     */
+    @Override
+    public HederaTransactionResponseVo<TopicResponseVo> updateAdminKey(@NonNull String topicId,
+                                                                       @NonNull String adminKey,
+                                                                       @NonNull String newAdminKey)
             throws ReceiptStatusException, PrecheckStatusException, TimeoutException {
-        //Create a transaction to add a submit key
         TopicUpdateTransaction transaction = new TopicUpdateTransaction()
-                .setTopicId(getTopicId(topicId))
-                .setSubmitKey(getPrivateKey(submitKey));
+                .setTopicId(TopicId.fromString(topicId))
+                .setAdminKey(getPrivateKey(newAdminKey));
+
+        return updateTopic(transaction, adminKey);
+    }
+
+    /**
+     * update submitKey
+     * 이 토픽에 메시지를 보내는 것을 허용하는 새로운 submitKey 를 토픽에 설정합니다.
+     *
+     * @param topicId      topicId
+     * @param adminKey     거래 서명할 adminKey
+     * @param newSubmitKey 수정할 submitKey
+     * @return HederaTransactionResponseVo<TopicResponseVo>
+     * @throws ReceiptStatusException  ReceiptStatusException
+     * @throws PrecheckStatusException PrecheckStatusException
+     * @throws TimeoutException        TimeoutException
+     */
+    @Override
+    public HederaTransactionResponseVo<TopicResponseVo> updateSubmitKey(@NonNull String topicId,
+                                                                        @NonNull String adminKey,
+                                                                        @NonNull String newSubmitKey) throws ReceiptStatusException, PrecheckStatusException, TimeoutException {
+        TopicUpdateTransaction transaction = new TopicUpdateTransaction()
+                .setTopicId(TopicId.fromString(topicId))
+                .setSubmitKey(getPrivateKey(newSubmitKey));
+
+        return updateTopic(transaction, adminKey);
+    }
+
+    /**
+     * update expirationTime
+     * 만료 기간 수정
+     *
+     * @param topicId           topicId
+     * @param adminKey          거래 서명할 adminKey
+     * @param newExpirationTime 수정할 만료 기간
+     * @return HederaTransactionResponseVo<TopicResponseVo>
+     * @throws ReceiptStatusException  ReceiptStatusException
+     * @throws PrecheckStatusException PrecheckStatusException
+     * @throws TimeoutException        TimeoutException
+     */
+    @Override
+    public HederaTransactionResponseVo<TopicResponseVo> updateExpirationTime(@NonNull String topicId,
+                                                                             @NonNull String adminKey,
+                                                                             @NonNull Instant newExpirationTime)
+            throws ReceiptStatusException, PrecheckStatusException, TimeoutException {
+        TopicUpdateTransaction transaction = new TopicUpdateTransaction()
+                .setTopicId(TopicId.fromString(topicId))
+                .setExpirationTime(newExpirationTime);
+
+        return updateTopic(transaction, adminKey);
+    }
+
+    /**
+     * update expirationTime
+     * 만료 기간 수정
+     *
+     * @param topicId      topicId
+     * @param adminKey     거래 서명할 adminKey
+     * @param newTopicMemo 수정할 토픽 메모
+     * @return HederaTransactionResponseVo<TopicResponseVo>
+     * @throws ReceiptStatusException  ReceiptStatusException
+     * @throws PrecheckStatusException PrecheckStatusException
+     * @throws TimeoutException        TimeoutException
+     */
+    @Override
+    public HederaTransactionResponseVo<TopicResponseVo> updateTopicMemo(@NonNull String topicId,
+                                                                        @NonNull String adminKey,
+                                                                        @NonNull String newTopicMemo)
+            throws ReceiptStatusException, PrecheckStatusException, TimeoutException {
+        TopicUpdateTransaction transaction = new TopicUpdateTransaction()
+                .setTopicId(TopicId.fromString(topicId))
+                .setTopicMemo(newTopicMemo);
+
+        return updateTopic(transaction, adminKey);
+    }
+
+    /**
+     * update AutoRenewAccountId
+     * 자동 갱신 account 수정
+     *
+     * @param topicId               topicId
+     * @param adminKey              거래 서명할 adminKey
+     * @param newAutoRenewAccountId 수정할 자동 갱신 accountId
+     * @return HederaTransactionResponseVo<TopicResponseVo>
+     * @throws ReceiptStatusException  ReceiptStatusException
+     * @throws PrecheckStatusException PrecheckStatusException
+     * @throws TimeoutException        TimeoutException
+     */
+    @Override
+    public HederaTransactionResponseVo<TopicResponseVo> updateAutoRenewAccount(@NonNull String topicId,
+                                                                               @NonNull String adminKey,
+                                                                               @NonNull String newAutoRenewAccountId)
+            throws ReceiptStatusException, PrecheckStatusException, TimeoutException {
+        TopicUpdateTransaction transaction = new TopicUpdateTransaction()
+                .setTopicId(TopicId.fromString(topicId))
+                .setAutoRenewAccountId(AccountId.fromString(newAutoRenewAccountId));
+
+        return updateTopic(transaction, adminKey);
+    }
+
+
+    /**
+     * update AutoRenewPeriod
+     * 자동 갱신 기간 수정
+     *
+     * @param topicId            topicId
+     * @param adminKey           거래 서명할 adminKey
+     * @param newAutoRenewPeriod 수정할 자동 갱신 기간
+     * @return HederaTransactionResponseVo<TopicResponseVo>
+     * @throws ReceiptStatusException  ReceiptStatusException
+     * @throws PrecheckStatusException PrecheckStatusException
+     * @throws TimeoutException        TimeoutException
+     */
+    @Override
+    public HederaTransactionResponseVo<TopicResponseVo> updateAutoRenewAccount(@NonNull String topicId,
+                                                                               @NonNull String adminKey,
+                                                                               @NonNull Duration newAutoRenewPeriod)
+            throws ReceiptStatusException, PrecheckStatusException, TimeoutException {
+        TopicUpdateTransaction transaction = new TopicUpdateTransaction()
+                .setTopicId(TopicId.fromString(topicId))
+                .setAutoRenewPeriod(newAutoRenewPeriod);
+
+        return updateTopic(transaction, adminKey);
+    }
+
+    /**
+     * clear adminKey
+     *
+     * @param topicId  topicId
+     * @param adminKey 거래 서명할 adminKey
+     * @return HederaTransactionResponseVo<TopicResponseVo>
+     * @throws ReceiptStatusException  ReceiptStatusException
+     * @throws PrecheckStatusException PrecheckStatusException
+     * @throws TimeoutException        TimeoutException
+     */
+    @Override
+    public HederaTransactionResponseVo<TopicResponseVo> clearAdminKey(@NonNull String topicId,
+                                                                      @NonNull String adminKey)
+            throws ReceiptStatusException, PrecheckStatusException, TimeoutException {
+        TopicUpdateTransaction transaction = new TopicUpdateTransaction()
+                .setTopicId(TopicId.fromString(topicId))
+                .clearAdminKey();
+
+        return updateTopic(transaction, adminKey);
+    }
+
+    /**
+     * clearSubmitKey
+     *
+     * @param topicId  topicId
+     * @param adminKey 거래 서명할 adminKey
+     * @return HederaTransactionResponseVo<TopicResponseVo>
+     * @throws ReceiptStatusException  ReceiptStatusException
+     * @throws PrecheckStatusException PrecheckStatusException
+     * @throws TimeoutException        TimeoutException
+     */
+    @Override
+    public HederaTransactionResponseVo<TopicResponseVo> clearSubmitKey(@NonNull String topicId,
+                                                                       @NonNull String adminKey)
+            throws ReceiptStatusException, PrecheckStatusException, TimeoutException {
+        TopicUpdateTransaction transaction = new TopicUpdateTransaction()
+                .setTopicId(TopicId.fromString(topicId))
+                .clearSubmitKey();
+
+        return updateTopic(transaction, adminKey);
+    }
+
+
+    /**
+     * clearTopicMemo
+     *
+     * @param topicId  topicId
+     * @param adminKey 거래 서명할 adminKey
+     * @return HederaTransactionResponseVo<TopicResponseVo>
+     * @throws ReceiptStatusException  ReceiptStatusException
+     * @throws PrecheckStatusException PrecheckStatusException
+     * @throws TimeoutException        TimeoutException
+     */
+    @Override
+    public HederaTransactionResponseVo<TopicResponseVo> clearTopicMemo(@NonNull String topicId,
+                                                                       @NonNull String adminKey)
+            throws ReceiptStatusException, PrecheckStatusException, TimeoutException {
+        TopicUpdateTransaction transaction = new TopicUpdateTransaction()
+                .setTopicId(TopicId.fromString(topicId))
+                .clearTopicMemo();
+
+        return updateTopic(transaction, adminKey);
+    }
+
+    /**
+     * clearAutoRenewAccountId
+     *
+     * @param topicId  topicId
+     * @param adminKey 거래 서명할 adminKey
+     * @return HederaTransactionResponseVo<TopicResponseVo>
+     * @throws ReceiptStatusException  ReceiptStatusException
+     * @throws PrecheckStatusException PrecheckStatusException
+     * @throws TimeoutException        TimeoutException
+     */
+    @Override
+    public HederaTransactionResponseVo<TopicResponseVo> clearAutoRenewAccountId(@NonNull String topicId,
+                                                                                @NonNull String adminKey)
+            throws ReceiptStatusException, PrecheckStatusException, TimeoutException {
+        TopicUpdateTransaction transaction = new TopicUpdateTransaction()
+                .setTopicId(TopicId.fromString(topicId))
+                .clearAutoRenewAccountId();
+
+        return updateTopic(transaction, adminKey);
+    }
+
+    private HederaTransactionResponseVo<TopicResponseVo> updateTopic(@NonNull TopicUpdateTransaction transaction,
+                                                                     @NonNull String adminKey)
+            throws ReceiptStatusException, PrecheckStatusException, TimeoutException {
 
         //Sign the transaction with the admin key to authorize the update
         TopicUpdateTransaction signTx = transaction
@@ -122,7 +347,7 @@ public class ConsensusHelperV1 extends AbstractHederaHelper implements Consensus
         if (!Status.SUCCESS.equals(receipt.status))
             throw new RuntimeException("Failed update Topic");
 
-        return makeTransactinoResponse(receipt, new TopicResponseVo(topicId));
+        return makeTransactionResponse(receipt, new TopicResponseVo(transaction.getTopicMemo()));
     }
 
     /**
@@ -165,7 +390,7 @@ public class ConsensusHelperV1 extends AbstractHederaHelper implements Consensus
         if (!Status.SUCCESS.equals(receipt.status))
             throw new RuntimeException("Failed delete Topic");
 
-        return makeTransactinoResponse(receipt, new TopicResponseVo(topicId));
+        return makeTransactionResponse(receipt, new TopicResponseVo(topicId));
     }
 
     /**
@@ -214,7 +439,7 @@ public class ConsensusHelperV1 extends AbstractHederaHelper implements Consensus
         if (!Status.SUCCESS.equals(receipt.status))
             throw new RuntimeException("Failed submit message");
 
-        return makeTransactinoResponse(receipt, new MessageResponseVo(topicId, message, receipt.topicSequenceNumber));
+        return makeTransactionResponse(receipt, new MessageResponseVo(topicId, message, receipt.topicSequenceNumber));
     }
 
     /**
