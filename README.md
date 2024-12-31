@@ -84,6 +84,11 @@ hedera:
 
 - [Hedera 공식 문서](https://docs.hedera.com/hedera/sdks-and-apis/sdks)
 
+## 블로그 정리
+
+---
+
+- [개인블로그](https://devk-jung.github.io/posts/blockchain-hedera-1/)
 
 
 ## 특이사항
